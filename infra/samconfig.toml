@@ -1,0 +1,96 @@
+# SAM Configuration for ATS Buddy
+# This file contains deployment configurations for different environments
+
+version = 0.1
+
+[default]
+[default.global]
+[default.global.parameters]
+stack_name = "ats-buddy-dev"
+region = "ap-southeast-1"
+confirm_changeset = false
+capabilities = "CAPABILITY_NAMED_IAM"
+parameter_overrides = "Environment=dev BedrockRegion=ap-southeast-1"
+resolve_s3 = true
+s3_prefix = "ats-buddy-dev"
+disable_rollback = false
+
+[default.build]
+[default.build.parameters]
+cached = true
+parallel = true
+
+[default.validate]
+[default.validate.parameters]
+lint = true
+
+[default.deploy]
+[default.deploy.parameters]
+confirm_changeset = true
+fail_on_empty_changeset = false
+parameter_overrides = "Environment=\"dev\" BedrockRegion=\"ap-southeast-1\" PresignedUrlExpirationHours=\"24\""
+image_repositories = []
+
+[default.package]
+[default.package.parameters]
+resolve_s3 = true
+
+[default.sync]
+[default.sync.parameters]
+watch = true
+
+[default.local_start_api]
+[default.local_start_api.parameters]
+warm_containers = "EAGER"
+
+[default.local_start_lambda]
+[default.local_start_lambda.parameters]
+warm_containers = "EAGER"
+
+# Development Environment
+[dev]
+[dev.global]
+[dev.global.parameters]
+stack_name = "ats-buddy-dev"
+region = "ap-southeast-1"
+parameter_overrides = "Environment=dev BedrockRegion=ap-southeast-1 PresignedUrlExpirationHours=24"
+
+[dev.deploy]
+[dev.deploy.parameters]
+capabilities = "CAPABILITY_NAMED_IAM"
+confirm_changeset = false
+fail_on_empty_changeset = false
+resolve_s3 = true
+s3_prefix = "ats-buddy-dev"
+
+# Staging Environment
+[staging]
+[staging.global]
+[staging.global.parameters]
+stack_name = "ats-buddy-staging"
+region = "ap-southeast-1"
+parameter_overrides = "Environment=staging BedrockRegion=ap-southeast-1 PresignedUrlExpirationHours=48"
+
+[staging.deploy]
+[staging.deploy.parameters]
+capabilities = "CAPABILITY_NAMED_IAM"
+confirm_changeset = true
+fail_on_empty_changeset = false
+resolve_s3 = true
+s3_prefix = "ats-buddy-staging"
+
+# Production Environment
+[prod]
+[prod.global]
+[prod.global.parameters]
+stack_name = "ats-buddy-prod"
+region = "ap-southeast-1"
+parameter_overrides = "Environment=prod BedrockRegion=ap-southeast-1 PresignedUrlExpirationHours=72"
+
+[prod.deploy]
+[prod.deploy.parameters]
+capabilities = "CAPABILITY_NAMED_IAM"
+confirm_changeset = true
+fail_on_empty_changeset = false
+resolve_s3 = true
+s3_prefix = "ats-buddy-prod"

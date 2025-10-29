@@ -1,0 +1,44 @@
+Sarah Johnson
+Data Scientist
+
+Contact Information:
+Email: sarah.johnson@email.com
+Phone: (555) 987-6543
+LinkedIn: linkedin.com/in/sarahjohnson
+
+Summary:
+Data scientist with 4 years of experience in machine learning, statistical analysis, and data visualization. Strong background in Python, R, and SQL with expertise in predictive modeling.
+
+Technical Skills:
+- Programming Languages: Python, R, SQL
+- Machine Learning: Scikit-learn, TensorFlow, Pandas, NumPy
+- Data Visualization: Matplotlib, Seaborn, Tableau
+- Databases: MySQL, PostgreSQL
+- Statistical Analysis: Hypothesis testing, A/B testing
+- Tools: Jupyter Notebooks, Git
+
+Professional Experience:
+
+Data Scientist | DataTech Solutions | 2022-2024
+- Developed machine learning models for customer churn prediction with 85% accuracy
+- Created data pipelines processing 1M+ records daily
+- Built interactive dashboards using Tableau for executive reporting
+- Conducted A/B tests to optimize product features
+
+Data Analyst | Analytics Corp | 2020-2022
+- Performed statistical analysis on customer behavior data
+- Generated weekly reports for marketing and product teams
+- Implemented data quality checks and validation processes
+- Collaborated with engineering teams on data collection improvements
+
+Education:
+Master of Science in Statistics
+Data University | 2018-2020
+
+Bachelor of Science in Mathematics
+Tech College | 2014-2018
+
+Projects:
+- Customer Segmentation: Used clustering algorithms to identify customer segments
+- Sales Forecasting: Built time series models for revenue prediction
+- Sentiment Analysis: Developed NLP model for social media sentiment classification

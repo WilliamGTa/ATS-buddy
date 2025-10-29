@@ -1,0 +1,1 @@
+# No additional requirements - using built-in boto3

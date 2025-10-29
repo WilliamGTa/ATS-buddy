@@ -1,0 +1,7 @@
+{
+  "bucket_name": "ats-buddy-dev-resumesbucket-123456789",
+  "s3_key": "sample_resume.pdf",
+  "job_description": "Senior Software Engineer Position\\n\\nRequirements:\\n- 5+ years Python experience\\n- AWS cloud experience required\\n- Docker containerization\\n- Kubernetes orchestration\\n- CI/CD pipeline experience\\n- Strong communication skills\\n\\nTechnical Skills:\\n- Python, Java, Go\\n- AWS services (EC2, S3, Lambda)\\n- Docker, Kubernetes\\n- Jenkins, GitLab CI\\n- Microservices architecture",
+  "job_title": "Senior Software Engineer",
+  "resume_filename": "sample_resume.pdf"
+}

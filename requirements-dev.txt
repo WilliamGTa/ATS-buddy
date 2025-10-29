@@ -1,0 +1,27 @@
+# Development dependencies for ATS Buddy
+# Install with: pip install -r requirements-dev.txt
+
+# Testing framework
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pytest-mock>=3.10.0
+moto>=4.2.0
+
+# Code quality
+black>=23.0.0
+flake8>=6.0.0
+isort>=5.12.0
+
+# Type checking
+mypy>=1.0.0
+
+# Documentation
+sphinx>=6.0.0
+sphinx-rtd-theme>=1.2.0
+
+# Development utilities
+ipython>=8.0.0
+jupyter>=1.0.0
+
+# Include production dependencies
+-r src/requirements.txt

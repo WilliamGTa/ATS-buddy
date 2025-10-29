@@ -1,0 +1,48 @@
+Frontend Developer
+
+Company: WebSolutions Inc.
+Location: San Francisco, CA (Hybrid)
+Type: Full-time
+
+Job Description:
+We are looking for a talented Frontend Developer to create amazing user experiences for our web applications. You will work closely with our design and backend teams to implement responsive, accessible, and performant user interfaces.
+
+Key Responsibilities:
+- Develop responsive web applications using modern JavaScript frameworks
+- Implement pixel-perfect designs from Figma mockups
+- Optimize applications for maximum speed and scalability
+- Ensure cross-browser compatibility and accessibility standards
+- Collaborate with UX/UI designers and backend developers
+- Write clean, maintainable, and well-documented code
+- Participate in code reviews and testing processes
+- Stay up-to-date with latest frontend technologies and best practices
+
+Required Skills:
+- 2+ years of experience in frontend development
+- Proficiency in HTML5, CSS3, and modern JavaScript (ES6+)
+- Experience with React, Vue.js, or Angular frameworks
+- Knowledge of responsive design and CSS frameworks (Bootstrap, Tailwind CSS)
+- Familiarity with build tools (Webpack, Vite, Parcel)
+- Experience with version control systems (Git)
+- Understanding of RESTful APIs and AJAX
+- Knowledge of browser developer tools and debugging techniques
+- Experience with CSS preprocessors (Sass, Less)
+
+Preferred Skills:
+- Experience with TypeScript
+- Knowledge of state management libraries (Redux, Vuex, MobX)
+- Familiarity with testing frameworks (Jest, Cypress, Testing Library)
+- Experience with CSS-in-JS libraries (Styled Components, Emotion)
+- Understanding of web performance optimization techniques
+- Knowledge of accessibility standards (WCAG)
+- Experience with design systems and component libraries
+- Familiarity with GraphQL
+- Basic understanding of backend technologies
+
+Benefits:
+- Competitive salary
+- Comprehensive health benefits
+- Flexible PTO policy
+- Remote work options
+- Learning and development budget
+- Modern equipment and tools

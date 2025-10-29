@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATS Buddy - Resume Analysis</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <!-- Cover Page -->
+    <div id="coverPage" class="cover-page">
+        <div class="cover-content">
+            <div class="cover-hero">
+                <h1 class="cover-title">🚀 ATS Buddy</h1>
+                <p class="cover-subtitle">AI-Powered Resume Optimization Platform</p>
+                <p class="cover-description">
+                    Transform your resume with real AI analysis. Get compatibility scores,
+                    missing keywords detection, and enhanced resume generation powered by AWS Bedrock.
+                </p>
+            </div>
+
+            <div class="cover-features">
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Smart Analysis</h3>
+                    <p>AI-powered compatibility scoring against job descriptions</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Keyword Detection</h3>
+                    <p>Identify missing keywords and skills automatically</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✨</div>
+                    <h3>Enhanced Generation</h3>
+                    <p>Generate optimized resumes with AI improvements</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Smart Caching</h3>
+                    <p>Lightning-fast processing with intelligent deduplication</p>
+                </div>
+            </div>
+
+            <div class="cover-actions">
+                <button id="startAnalysisBtn" class="start-btn">
+                    Get Started - Analyze Your Resume
+                </button>
+                <p class="cover-note">
+                    <small>✅ Free to use • 🔒 Secure processing • ⚡ Results in 30 seconds</small>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="mainApp" class="container hidden">
+        <header>
+            <div class="header-nav">
+                <button id="backToCoverBtn" class="back-btn">← Back to Home</button>
+            </div>
+            <h1>ATS Buddy</h1>
+            <p>Unlock Your Career Potential: Analyze Your Resume for Success</p>
+        </header>
+
+        <main>
+            <form id="analysisForm" class="analysis-form">
+                <!-- Step 1: Resume Upload -->
+                <section class="form-section">
+                    <h2><span class="step-number">1</span> Upload Your Resume</h2>
+                    <div class="file-upload-container">
+                        <input type="file" id="resumeFile" name="resumeFile" accept=".pdf" required>
+                        <label for="resumeFile" class="file-upload-label">
+                            <div class="upload-icon">📄</div>
+                            <div class="upload-text">
+                                <span class="upload-main">Drag & Drop or Choose PDF</span>
+                                <span class="upload-sub">Max. 10MB</span>
+                            </div>
+                        </label>
+                        <div id="fileInfo" class="file-info hidden"></div>
+                        <div id="deduplicationStatus" class="deduplication-status hidden"></div>
+                        <div id="fileError" class="error-message hidden"></div>
+                    </div>
+                </section>
+
+                <!-- Step 2: Job Description -->
+                <section class="form-section">
+                    <h2><span class="step-number">2</span> Job Description</h2>
+                    <div class="textarea-container">
+                        <textarea id="jobDescription" name="jobDescription"
+                            placeholder="Paste job description here (min. 100 chars)" rows="8" required></textarea>
+                        <div class="char-count">
+                            <span id="charCount">0</span> / 100
+                        </div>
+                        <div id="jobDescError" class="error-message hidden"></div>
+                    </div>
+                </section>
+
+                <!-- Resume Preview Section -->
+                <section class="form-section" id="resumePreviewSection" style="display: none;">
+                    <h2><span class="step-number">3</span> Resume Preview</h2>
+                    <div class="resume-preview-container">
+                        <div class="preview-header">
+                            <div id="previewFileInfo" class="preview-file-info"></div>
+                        </div>
+                        <div class="preview-content">
+                            <textarea id="resumePreviewText" class="resume-preview-textarea" readonly
+                                placeholder="Resume text will appear here after upload..."></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Submit Button -->
+                <section class="form-section">
+                    <button type="submit" id="analyzeBtn" class="analyze-btn" disabled>
+                        Analyze My Resume
+                    </button>
+                </section>
+            </form>
+
+            <!-- Error Messages -->
+            <div id="generalError" class="error-message hidden"></div>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 ATS Buddy - Hackathon POC</p>
+        </footer>
+    </div>
+
+    <script>
+        // Configuration - Update this with your actual API Gateway URL
+        window.ATS_BUDDY_CONFIG = {
+            apiUrl: 'https://4rvo13bwv1.execute-api.ap-southeast-1.amazonaws.com/dev/analyze'
+        };
+    </script>
+    <script src="script.js"></script>
+</body>
+
+</html>

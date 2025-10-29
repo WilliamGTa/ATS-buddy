@@ -1,0 +1,594 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: ATS Buddy - Resume Analysis Serverless Application
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+    Description: Environment name for resource naming
+  
+  BedrockRegion:
+    Type: String
+    Default: ap-southeast-1
+    Description: AWS region where Bedrock is available
+    
+  PresignedUrlExpirationHours:
+    Type: Number
+    Default: 24
+    MinValue: 1
+    MaxValue: 168
+    Description: Expiration time for presigned URLs in hours
+
+Globals:
+  Function:
+    Timeout: 300
+    MemorySize: 512
+    Runtime: python3.13
+    Environment:
+      Variables:
+        ENVIRONMENT: !Ref Environment
+        BEDROCK_REGION: !Ref BedrockRegion
+        PRESIGNED_URL_EXPIRATION_HOURS: !Ref PresignedUrlExpirationHours
+
+Resources:
+
+  # DynamoDB Table for Resume Cache
+  ResumeCacheTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "ats-buddy-resume-cache-${Environment}"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: file_hash
+          AttributeType: S
+      KeySchema:
+        - AttributeName: file_hash
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Application
+          Value: ATS-Buddy
+
+  # S3 Bucket for Generated Reports
+  ReportsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldReports
+            Status: Enabled
+            ExpirationInDays: 1
+            NoncurrentVersionExpirationInDays: 1
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Application
+          Value: ATS-Buddy
+
+  # IAM Role for Lambda Function
+  ATSBuddyLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "ATSBuddyLambdaRole-${Environment}"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: S3Access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                Resource:
+                  - !Sub "${ResumesBucket.Arn}/*"
+                  - !Sub "${ReportsBucket.Arn}/*"
+                  - !Sub "arn:aws:s3-object-lambda:${AWS::Region}:${AWS::AccountId}:accesspoint/pii-redacted-resumes-${Environment}/*"
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:PutObjectAcl
+                  - s3:DeleteObject
+                Resource:
+                  - !Sub "${ReportsBucket.Arn}/*"
+                  - !Sub "${ResumesBucket.Arn}/*"
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:GetBucketLocation
+                Resource:
+                  - !GetAtt ResumesBucket.Arn
+                  - !GetAtt ReportsBucket.Arn
+              - Effect: Allow
+                Action:
+                  - s3-object-lambda:GetObject
+                Resource:
+                  - !Sub "arn:aws:s3-object-lambda:${AWS::Region}:${AWS::AccountId}:accesspoint/pii-redacted-resumes-${Environment}"
+        - PolicyName: TextractAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - textract:DetectDocumentText
+                  - textract:AnalyzeDocument
+                  - textract:StartDocumentTextDetection
+                  - textract:GetDocumentTextDetection
+                  - textract:StartDocumentAnalysis
+                  - textract:GetDocumentAnalysis
+                Resource: "*"
+        - PolicyName: BedrockAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:InvokeModelWithResponseStream
+                  - bedrock:ListFoundationModels
+                  - bedrock:GetFoundationModel
+                Resource: "*"
+        - PolicyName: DynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                Resource: !GetAtt ResumeCacheTable.Arn
+
+  # S3 Bucket for Resume Uploads
+  ResumesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldResumes
+            Status: Enabled
+            ExpirationInDays: 1
+            NoncurrentVersionExpirationInDays: 1
+          - Id: DeleteIncompleteMultipartUploads
+            Status: Enabled
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 1
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Application
+          Value: ATS-Buddy
+
+  # S3 Access Point for Resume Bucket (required for Object Lambda)
+  ResumesBucketAccessPoint:
+    Type: AWS::S3::AccessPoint
+    Properties:
+      Bucket: !Ref ResumesBucket
+      Name: !Sub "resumes-access-point-${Environment}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  # IAM Role for PII Redaction Lambda
+  PIIRedactionLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "PIIRedactionLambdaRole-${Environment}"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: S3ObjectLambdaAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3-object-lambda:WriteGetObjectResponse
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource: !Sub "${ResumesBucket.Arn}/*"
+        - PolicyName: ComprehendAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - comprehend:DetectPiiEntities
+                  - comprehend:ContainsPiiEntities
+                Resource: "*"
+
+  # PII Redaction Lambda Function (custom implementation)
+  PIIRedactionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "ats-buddy-pii-redaction-${Environment}"
+      CodeUri: pii-redaction-lambda/
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.13
+      Timeout: 60
+      MemorySize: 256
+      Role: !GetAtt PIIRedactionLambdaRole.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: INFO
+
+  # S3 Object Lambda Access Point with PII Redaction
+  PIIRedactionObjectLambdaAccessPoint:
+    Type: AWS::S3ObjectLambda::AccessPoint
+    Properties:
+      Name: !Sub "pii-redacted-resumes-${Environment}"
+      ObjectLambdaConfiguration:
+        SupportingAccessPoint: !Sub "${ResumesBucketAccessPoint.Arn}"
+        TransformationConfigurations:
+          - Actions:
+              - GetObject
+            ContentTransformation:
+              AwsLambda:
+                FunctionArn: !GetAtt PIIRedactionFunction.Arn
+
+  # S3 Bucket for Web UI Static Hosting (Private - served via CloudFront)
+  WebUIBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "ats-buddy-web-ui-${Environment}-${AWS::AccountId}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Application
+          Value: ATS-Buddy
+
+  # CloudFront Origin Access Control for secure S3 access
+  WebUIOriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "ats-buddy-oac-${Environment}"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  # CloudFront Distribution for Web UI
+  WebUICloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: !Sub "ATS Buddy Web UI Distribution - ${Environment}"
+        DefaultCacheBehavior:
+          TargetOriginId: !Sub "S3-${WebUIBucket}"
+          ViewerProtocolPolicy: redirect-to-https
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6  # Managed-CachingOptimized
+          OriginRequestPolicyId: 88a5eaf4-2fd4-4709-b370-b4c650ea3fcf  # Managed-CORS-S3Origin
+          ResponseHeadersPolicyId: 67f7725c-6f97-4210-82d7-5512b31e9d03  # Managed-SecurityHeadersPolicy
+          Compress: true
+        DefaultRootObject: index.html
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+        Enabled: true
+        HttpVersion: http2
+        IPV6Enabled: true
+        Origins:
+          - Id: !Sub "S3-${WebUIBucket}"
+            DomainName: !GetAtt WebUIBucket.RegionalDomainName
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+            OriginAccessControlId: !GetAtt WebUIOriginAccessControl.Id
+        PriceClass: PriceClass_100  # Use only North America and Europe edge locations for cost optimization
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Application
+          Value: ATS-Buddy
+
+  # S3 Bucket Policy for CloudFront Access Only
+  WebUIBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref WebUIBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowCloudFrontServicePrincipal
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub "${WebUIBucket.Arn}/*"
+            Condition:
+              StringEquals:
+                "AWS:SourceArn": !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${WebUICloudFrontDistribution}"
+
+  # Main Lambda Function
+  ATSBuddyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "ats-buddy-processor-${Environment}"
+      CodeUri: ../src/
+      Handler: handler.lambda_handler
+      Role: !GetAtt ATSBuddyLambdaRole.Arn
+      Environment:
+        Variables:
+          RESUMES_BUCKET: !Ref ResumesBucket
+          REPORTS_BUCKET: !Ref ReportsBucket
+          RESUME_CACHE_TABLE: !Ref ResumeCacheTable
+          PII_REDACTED_ACCESS_POINT: !GetAtt PIIRedactionObjectLambdaAccessPoint.Arn
+      Events:
+        AnalyzeApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ATSBuddyApi
+            Path: /analyze
+            Method: POST
+        AnalyzeOptionsApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ATSBuddyApi
+            Path: /analyze
+            Method: OPTIONS
+        EnhanceApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ATSBuddyApi
+            Path: /enhance
+            Method: POST
+        EnhanceOptionsApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ATSBuddyApi
+            Path: /enhance
+            Method: OPTIONS
+
+  # API Gateway for Web UI Integration
+  ATSBuddyApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub "ats-buddy-api-${Environment}"
+      StageName: !Ref Environment
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With'"
+        AllowOrigin: "'*'"
+        AllowCredentials: false
+        MaxAge: "'86400'"
+      BinaryMediaTypes:
+        - "multipart/form-data"
+        - "application/pdf"
+      DefinitionBody:
+        openapi: 3.0.1
+        info:
+          title: ATS Buddy API
+          version: 1.0.0
+        paths:
+          /analyze:
+            post:
+              consumes:
+                - multipart/form-data
+              produces:
+                - application/json
+              responses:
+                '200':
+                  description: Analysis completed successfully
+                '400':
+                  description: Bad request
+                '422':
+                  description: Processing error
+                '500':
+                  description: Internal server error
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ATSBuddyFunction.Arn}/invocations"
+            options:
+              responses:
+                '200':
+                  description: CORS preflight response
+                  headers:
+                    Access-Control-Allow-Origin:
+                      schema:
+                        type: string
+                    Access-Control-Allow-Methods:
+                      schema:
+                        type: string
+                    Access-Control-Allow-Headers:
+                      schema:
+                        type: string
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ATSBuddyFunction.Arn}/invocations"
+          /enhance:
+            post:
+              consumes:
+                - application/json
+              produces:
+                - application/json
+              responses:
+                '200':
+                  description: Enhanced resume generated successfully
+                '400':
+                  description: Bad request
+                '422':
+                  description: Processing error
+                '500':
+                  description: Internal server error
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ATSBuddyFunction.Arn}/invocations"
+            options:
+              responses:
+                '200':
+                  description: CORS preflight response
+                  headers:
+                    Access-Control-Allow-Origin:
+                      schema:
+                        type: string
+                    Access-Control-Allow-Methods:
+                      schema:
+                        type: string
+                    Access-Control-Allow-Headers:
+                      schema:
+                        type: string
+              x-amazon-apigateway-integration:
+                type: aws_proxy
+                httpMethod: POST
+                uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ATSBuddyFunction.Arn}/invocations"
+
+  # CloudWatch Log Group for Lambda Function
+  ATSBuddyLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/ats-buddy-processor-${Environment}"
+      RetentionInDays: 14
+
+Outputs:
+  ResumesBucketName:
+    Description: Name of the S3 bucket for resume uploads
+    Value: !Ref ResumesBucket
+    Export:
+      Name: !Sub "${AWS::StackName}-ResumesBucket"
+
+  ReportsBucketName:
+    Description: Name of the S3 bucket for generated reports
+    Value: !Ref ReportsBucket
+    Export:
+      Name: !Sub "${AWS::StackName}-ReportsBucket"
+
+  LambdaFunctionName:
+    Description: Name of the main Lambda function
+    Value: !Ref ATSBuddyFunction
+    Export:
+      Name: !Sub "${AWS::StackName}-LambdaFunction"
+
+  LambdaFunctionArn:
+    Description: ARN of the main Lambda function
+    Value: !GetAtt ATSBuddyFunction.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-LambdaFunctionArn"
+
+
+
+  IAMRoleArn:
+    Description: ARN of the Lambda execution role
+    Value: !GetAtt ATSBuddyLambdaRole.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-IAMRole"
+
+  ApiGatewayUrl:
+    Description: URL of the API Gateway for web UI integration
+    Value: !Sub "https://${ATSBuddyApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}"
+    Export:
+      Name: !Sub "${AWS::StackName}-ApiGatewayUrl"
+
+  ApiGatewayId:
+    Description: ID of the API Gateway
+    Value: !Ref ATSBuddyApi
+    Export:
+      Name: !Sub "${AWS::StackName}-ApiGatewayId"
+
+  WebUIBucketName:
+    Description: Name of the S3 bucket for web UI hosting
+    Value: !Ref WebUIBucket
+    Export:
+      Name: !Sub "${AWS::StackName}-WebUIBucket"
+
+  WebUIUrl:
+    Description: URL of the hosted web UI (CloudFront Distribution)
+    Value: !Sub "https://${WebUICloudFrontDistribution.DomainName}"
+    Export:
+      Name: !Sub "${AWS::StackName}-WebUIUrl"
+
+  CloudFrontDistributionId:
+    Description: CloudFront Distribution ID for the Web UI
+    Value: !Ref WebUICloudFrontDistribution
+    Export:
+      Name: !Sub "${AWS::StackName}-CloudFrontDistributionId"
+
+  CloudFrontDomainName:
+    Description: CloudFront Distribution Domain Name
+    Value: !GetAtt WebUICloudFrontDistribution.DomainName
+    Export:
+      Name: !Sub "${AWS::StackName}-CloudFrontDomainName"
+
+  ResumeCacheTableName:
+    Description: Name of the DynamoDB table for resume cache
+    Value: !Ref ResumeCacheTable
+    Export:
+      Name: !Sub "${AWS::StackName}-ResumeCacheTable"
+
+  PIIRedactionAccessPointArn:
+    Description: ARN of the S3 Object Lambda Access Point for PII redaction
+    Value: !Sub "arn:aws:s3-object-lambda:${AWS::Region}:${AWS::AccountId}:accesspoint/pii-redacted-resumes-${Environment}"
+    Export:
+      Name: !Sub "${AWS::StackName}-PIIRedactionAccessPoint"
+
+  PIIRedactionFunctionName:
+    Description: Name of the PII redaction Lambda function
+    Value: !Ref PIIRedactionFunction
+    Export:
+      Name: !Sub "${AWS::StackName}-PIIRedactionFunction"

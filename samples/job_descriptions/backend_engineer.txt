@@ -1,0 +1,44 @@
+Backend Software Engineer
+
+Company: InnovateTech
+Location: Remote
+Type: Full-time
+
+Job Description:
+We are seeking a skilled Backend Software Engineer to join our growing engineering team. You will be responsible for designing, developing, and maintaining scalable backend systems that power our web and mobile applications.
+
+Key Responsibilities:
+- Design and implement robust, scalable backend APIs and microservices
+- Work with containerization technologies like Docker and Kubernetes
+- Develop and maintain CI/CD pipelines for automated deployment
+- Collaborate with frontend developers and product managers
+- Optimize application performance and database queries
+- Participate in code reviews and maintain high code quality standards
+- Troubleshoot and resolve production issues
+
+Required Skills:
+- 3+ years of experience in backend development
+- Proficiency in Python, Java, or Go programming languages
+- Experience with RESTful API design and development
+- Strong knowledge of relational databases (PostgreSQL, MySQL)
+- Experience with cloud platforms (AWS, GCP, or Azure)
+- Familiarity with containerization (Docker, Kubernetes)
+- Knowledge of microservices architecture
+- Experience with version control systems (Git)
+- Understanding of CI/CD practices and tools
+- Strong problem-solving and debugging skills
+
+Preferred Skills:
+- Experience with message queues (RabbitMQ, Apache Kafka)
+- Knowledge of NoSQL databases (MongoDB, Redis)
+- Familiarity with monitoring and logging tools
+- Experience with infrastructure as code (Terraform, CloudFormation)
+- Understanding of security best practices
+- Experience with agile development methodologies
+
+Benefits:
+- Competitive salary and equity package
+- Health, dental, and vision insurance
+- Flexible work arrangements
+- Professional development opportunities
+- 401(k) matching

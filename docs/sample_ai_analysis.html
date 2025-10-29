@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATS Buddy - Resume Analysis Report</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8fafc;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #1e293b;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #374151;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #4b5563;
+        }
+        .score-section {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .score-number {
+            font-size: 3em;
+            font-weight: bold;
+            color: #eab308;
+        }
+        .score-message {
+            font-size: 1.1em;
+            margin-top: 10px;
+        }
+        .metadata {
+            background: #f8fafc;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .metadata strong {
+            color: #1e293b;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin: 8px 0;
+        }
+        .suggestions {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .strengths {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .missing {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .next-steps {
+            background: #e0f2fe;
+            border-left: 4px solid #0284c7;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            color: #6b7280;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 ATS Buddy - Resume Analysis Report</h1>
+        
+        <div class="metadata">
+            <strong>Generated:</strong> September 26, 2025 at 02:19 PM UTC<br>
+            <strong>Resume:</strong> software_engineer.pdf<br>
+            <strong>Position:</strong> Backend Engineer<br>
+        </div>
+        
+        <div class="score-section">
+            <h2>📊 Compatibility Score</h2>
+            <div class="score-number">70.0%</div>
+            <div class="score-message">🟡 Good match with room for improvement. Consider the suggestions below.</div>
+        </div>
+
+        <h2>🎯 Missing Keywords</h2>
+        <div class="missing">
+            <p>The following keywords from the job description were not found in your resume:</p>
+            <ul>
+                <li>microservices</li>
+                <li>Kubernetes</li>
+                <li>CI/CD</li>
+                <li>message queues</li>
+                <li>infrastructure as code</li>
+            </ul>
+        </div>
+
+        <h2>🔧 Missing Skills</h2>
+        <div class="missing">
+            <h3>Technical Skills:</h3>
+            <ul>
+                <li>containerization</li>
+                <li>CI/CD practices and tools</li>
+                <li>microservices architecture</li>
+            </ul>
+            <h3>Soft Skills:</h3>
+            <ul>
+                <li>problem-solving and debugging skills</li>
+            </ul>
+        </div>
+
+        <h2>✅ Your Strengths</h2>
+        <div class="strengths">
+            <p>Areas where your resume already aligns well:</p>
+            <ul>
+                <li>backend development experience</li>
+                <li>experience with AWS</li>
+                <li>performance optimization</li>
+            </ul>
+        </div>
+
+        <h2>💡 Actionable Recommendations</h2>
+        <div class="suggestions">
+            <p>Here are specific ways to improve your resume for this position:</p>
+            <ol>
+                <li>Include specific examples of designing and implementing microservices in your professional experience.</li>
+                <li>Add a section detailing your experience with CI/CD pipelines and tools, such as Jenkins or GitLab CI.</li>
+                <li>Highlight any experience with containerization technologies like Docker and Kubernetes, and mention any projects involving infrastructure as code (Terraform, CloudFormation).</li>
+            </ol>
+        </div>
+
+        <h2>🔧 Areas for Improvement</h2>
+        <div class="missing">
+            <ul>
+                <li>microservices experience</li>
+                <li>CI/CD knowledge</li>
+                <li>containerization skills</li>
+            </ul>
+        </div>
+
+        <h2>🚀 Next Steps</h2>
+        <div class="next-steps">
+            <ol>
+                <li><strong>Review missing keywords</strong> and incorporate relevant ones naturally into your resume</li>
+                <li><strong>Update your skills section</strong> to include missing technical and soft skills you possess</li>
+                <li><strong>Quantify your achievements</strong> with specific metrics and numbers where possible</li>
+                <li><strong>Tailor your experience descriptions</strong> to use language similar to the job posting</li>
+                <li><strong>Proofread carefully</strong> to ensure your resume is error-free and professional</li>
+            </ol>
+        </div>
+        
+        <div class="footer">
+            Generated by ATS Buddy - Your AI-powered resume optimization assistant
+        </div>
+    </div>
+</body>
+</html>
