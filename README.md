@@ -227,7 +227,7 @@ ats-buddy/
 
 ```bash
 # Clone and setup
-git clone https://github.com/seehiong/ats-buddy.git
+git clone https://github.com/0xstackforge/ats-buddy.git
 cd ats-buddy
 
 # Setup Python 3.13 virtual environment (required for SAM compatibility)
@@ -298,7 +298,7 @@ python scripts/validate_system.py
 
 ```bash
 # 1. Clone and setup
-git clone https://github.com/seehiong/ats-buddy.git
+git clone https://github.com/0xstackforge/ats-buddy.git
 cd ats-buddy
 
 # 2. Setup Python 3.13 virtual environment
@@ -536,7 +536,7 @@ ATS Buddy is designed with cost efficiency in mind:
 **Quick Local Demo (No AWS Setup Required):**
 ```bash
 # 1. Setup
-git clone https://github.com/seehiong/ats-buddy.git
+git clone https://github.com/0xstackforge/ats-buddy.git
 cd ats-buddy
 python -m venv .venv && .venv\Scripts\activate
 pip install -r requirements-dev.txt
